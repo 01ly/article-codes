@@ -159,10 +159,44 @@ def mixed_process_coroutine_crawler(processors:int,concurrency:int):
     pool.join()
 
 
+#----------------------------------------------------------------------
+#多进程+多线程+异步协程爬虫
+
+
+def _process_thread_coroutine(pic_urls:list,concurrency:int,loop):
+    asyncio.set_event_loop(loop)
+    loop.run_until_complete(run_coroutine_crawler(pic_urls,concurrency))
+
+def run_boss_crawler(pic_urls:list,threads:int,concurrency:int):
+    #获取当前子进程一个新的事件循环
+    thread_loop = asyncio.new_event_loop()
+    url_groups = allot(pic_urls,threads)
+    start = time.time()
+    _threads = []
+    for i in range(threads):
+        t = Thread(target=_process_thread_coroutine, args=(url_groups[i], concurrency,thread_loop))
+        _threads.append(t)
+        t.setDaemon(True)
+        t.start()
+    for t in _threads:
+        t.join()
+    end = time.time()
+    print(u'下载完成,%d张图片,耗时:%.2fs' % (len(pic_urls), (end - start)))
+
+def boss_crawler(processors:int,threads:int,concurrency:int):
+    pool = Pool(processors)
+    pic_urls = get_pic_src(url)
+    url_groups = allot(pic_urls, processors)
+    for group in url_groups:
+        pool.apply_async(run_boss_crawler, args=(group, threads,concurrency))
+    pool.close()
+    pool.join()
+
 if __name__ == '__main__':
-    crawler()
-    multiprocess_crawler(40)
-    multithread_crawler(120)
-    coroutine_crawler(100)
-    mixed_process_thread_crawler(4,50)
-    mixed_process_coroutine_crawler(4,50)
+    # crawler()
+    # multiprocess_crawler(40)
+    # multithread_crawler(120)
+    # coroutine_crawler(100)
+    # mixed_process_thread_crawler(4,50)
+    # mixed_process_coroutine_crawler(4,50)
+    boss_crawler(4,10,20)

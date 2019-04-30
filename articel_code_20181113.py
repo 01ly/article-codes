@@ -16,7 +16,7 @@ def download_one_pic(url:str,name:str,suffix:str='jpg'):
 def download_many_pic(urls:list):
     start = time.time()
     for i in urls:
-        ts = 'test\\'+str(int(time.time() * 1000))
+        ts = str(int(time.time() * 1000))
         download_one_pic(i, ts)
     end = time.time()
     print(u'下载完成,%d张图片,耗时:%.2fs' % (len(urls), (end - start)))
@@ -76,7 +76,7 @@ def run_multithread_crawler(pic_urls:list,threads:int):
         if not urls:
             break
         for i in urls:
-            ts = 'test\\'+str(int(time.time()*10000))+str(random.randint(1,100000))
+            ts = str(int(time.time()*10000))+str(random.randint(1,100000))
             t = Thread(target=download_one_pic,args=(i,ts))
             _threads.append(t)
         for t in _threads:
@@ -115,7 +115,7 @@ async def run_coroutine_crawler(pic_urls:list,concurrency:int):
     conn =TCPConnector(limit=concurrency)
     async with ClientSession(connector=conn) as session:
         for i in pic_urls:
-            ts = 'test\\' + str(int(time.time() * 10000)) + str(random.randint(1, 100000))
+            ts = str(int(time.time() * 10000)) + str(random.randint(1, 100000))
             tasks.append(asyncio.create_task(download(session,i,ts,sem)))
         start = time.time()
         await asyncio.gather(*tasks)
